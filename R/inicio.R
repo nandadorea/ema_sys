@@ -1,7 +1,7 @@
 setwd("C:/Users/Oliveiras/OneDrive - Food and Agriculture Organization/Desktop/Rmood/Test Sandra")
 install.packages("readr")
 library(readr)
-data <- read_csv("Data_Test_Sandra.csv")
+data <- read_csv("data/Data_Test_Sandra.csv")
 
 require(qcc)
 

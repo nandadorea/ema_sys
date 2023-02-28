@@ -1,4 +1,4 @@
-setwd("C:/Users/Oliveiras/OneDrive - Food and Agriculture Organization/Desktop/Rmood/Test Sandra")
+setwd("C:/Users/Oliveiras/OneDrive - Food and Agriculture Organization/Desktop/Rmood/Tutorial/vetsyn/ema_sys")
 install.packages("readr")
 library(readr)
 data <- read_csv("data/Data_Test_Sandra.csv")

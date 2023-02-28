@@ -24,7 +24,7 @@ a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
 data_new$`Reporting date` <- a # Put it back in your dataframe
 data_new$`Reporting date`
 
-#I try to do something with the observation date but didn't work well because changed the dates. I will continue and then return.
+#Didn't work well because changed the dates.
 
 
 class(data_new$`Reporting date`) # is a character and has to pass as a date 

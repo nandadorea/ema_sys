@@ -14,6 +14,9 @@ require(vetsyn)
 library(dplyr) 
 library(tidyr)
 
+#First stepo correct the wrong dates
+data_new <- data 
+
 
 #First Step If don't have an observation date put equal to the reported date
 

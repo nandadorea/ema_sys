@@ -14,8 +14,25 @@ require(vetsyn)
 library(dplyr) 
 library(tidyr)
 
-#First stepo correct the wrong dates
+#First step correct the wrong dates
 data_new <- data 
+
+a <- as.Date(data_new$`Reporting date`,format="%d/%m/%Y") # Produces NA when format is not "%d/%m/%Y"
+b <- as.Date(data_new$`Reporting date`,format="%d-%m-%Y") # Produces NA when format is not "%d-%m-%Y"
+
+a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+data_new$`Reporting date` <- a # Put it back in your dataframe
+data_new$`Reporting date`
+
+#I try to do something with the observation date but didn't work well because changed the dates. I will continue and then return.
+
+
+class(data_new$`Reporting date`) # is a character and has to pass as a date 
+library(lubridate)
+data_new$`Reporting date` <- dmy(data_new$`Reporting date`) #convert character to date format
+#1828 parsed!! 1828 NAs so I have to change the date before!
+
+class(datasetnew$`Observation date`) #ok now is a date!
 
 
 #First Step If don't have an observation date put equal to the reported date

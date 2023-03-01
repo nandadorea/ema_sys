@@ -80,14 +80,28 @@ ts_plot(Tdatabyspecies, line.mode = "lines",width=500, Xtitle = "Date",
 Tdatabyspecies <- Tdatabyspecies[ ,c(1,7,8,9,22,25)]
 ts_plot(Tdatabyspecies, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
-#Now duplicate the data!
 
+Tdatabyspecies_new <- Tdatabyspecies
 
+#Now sum the data in the different columns
+Tdatabyspecies_new$Cattle <- as.numeric(Tdatabyspecies_new$Cattle)
+Tdatabyspecies_new$`Cattle,Swine`<- as.numeric(Tdatabyspecies_new$`Cattle,Swine`)
+Tdatabyspecies_new$Cattle <- Tdatabyspecies_new$`Cattle,Swine` + Tdatabyspecies_new$Cattle
 
+Tdatabyspecies_new$Swine <- as.numeric(Tdatabyspecies_new$Swine)
+Tdatabyspecies_new$Swine <- Tdatabyspecies_new$`Cattle,Swine` + Tdatabyspecies_new$Swine
 
+Tdatabyspecies_new$Chicken <- as.numeric(Tdatabyspecies_new$Chicken)
+Tdatabyspecies_new$`Unspecified arthropod,Chicken` <- as.numeric(Tdatabyspecies_new$`Unspecified arthropod,Chicken`)
+Tdatabyspecies_new$Chicken <- Tdatabyspecies_new$`Unspecified arthropod,Chicken` + Tdatabyspecies_new$Chicken
 
+Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)]
+#dataCompleted!
 
-#Tentative of Syndromic
+ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
+        Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
+
+#Start Tutorial!
 my.syndromic <- syndromicD(datebyspecies,min.date="2016-12-19",max.date="2020-10-12")
 
 my.syndromic <- raw_to_syndromicD (id=databyspecies$`Id`, 

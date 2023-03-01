@@ -7,10 +7,10 @@ require(qcc)
 
 install.packages("surveillance")
 library("surveillance")
-
+install_github("nandadorea/vetsyn")
 install.packages("vetsyn")
 require(vetsyn)
-
+library(devtools)
 library(dplyr) 
 library(tidyr)
 library(lubridate)
@@ -102,43 +102,18 @@ ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
 #Start Tutorial!
-my.syndromic <- syndromicD(datebyspecies,min.date="2016-12-19",max.date="2020-10-12")
 
-my.syndromic <- raw_to_syndromicD (id=databyspecies$`Id`, 
-                                   syndromes.var= databyspecies$`Animal species`,
-                                   dates.var= databyspecies$`Observation date`,  
+my.syndromic <- raw_to_syndromicD (id=list(Tdatabyspeciesf$`Reporting date`,Tdatabyspeciesf$Cattle,Tdatabyspeciesf$Swine, Tdatabyspeciesf$Chicken), 
+                                   syndromes.var=Tdatabyspeciesf$Cattle,Tdatabyspeciesf$Swine, Tdatabyspeciesf$Chicken,
+                                   syndromes.name=c("Swine","Cattle", "Chicken"),
+                                   dates.var=Tdatabyspeciesf$`Reporting date`, 
                                    date.format="%Y-%m-%d", 
-                                   data=databyspecies)
-plot(my.syndromic)
-
-Data_alltime <- setDatesD
-
-#I try to do Retrospective analysis it was just errors....#I think this might be because I always have NAs... When I was doing the tutorial also
-# gave me this Number of detection algorithms used = NA 
-##my.syndromic <- raw_to_syndromicD (id=datasetnew$Id, 
-##syndromes.var= datasetnew$`Animal species`,
-##dates.var=datasetnew$`Observation date`, 
-##date.format="%d/%m/%Y", 
-##min.date="19/12/2016", 
-##max.date="12/10/2020",
-##sort=TRUE,
-##data=datasetnew)
-
-##my.syndromic
-
-## dim(my.syndromic)
-##dim(my.syndromic)[1] #rows = number of time points
-##dim(my.syndromic)[2] #columns = number of syndromes monitored
-##dim(my.syndromic)[3] #3rd dimension = number of detection algorithms used (more later)
-
-##retro_summary(my.syndromic, frequency=365)
-
-
-my.syndromic <- raw_to_syndromicD (id=`Id`, 
-                                   syndromes.var=`Animal species`,
-                                   dates.var=`Observation date`, 
-                                   date.format="%d/%m/%Y", 
+                                   min.date="2016-12-19", 
+                                   max.date="2020-10-12", 
                                    sort=TRUE,
-                                   data=databyspecies)
+                                   data=Tdatabyspeciesf)
+
+
+my.syndromic <- syndromicD(datebyspecies,min.date="2016-12-19",max.date="2020-10-12")
 
 

@@ -1,4 +1,4 @@
-setwd("C:/Users/Oliveiras/OneDrive - Food and Agriculture Organization/Desktop/Rmood/Tutorial/vetsyn/ema_sys")
+#setwd("C:/Users/Oliveiras/OneDrive - Food and Agriculture Organization/Desktop/Rmood/Tutorial/vetsyn/ema_sys")
 install.packages("readr")
 library(readr)
 data <- read_csv("data/Data_Test_Sandra.csv")
@@ -105,6 +105,10 @@ ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
 Tdatabyspeciesff <- tibble::rowid_to_column(Tdatabyspeciesf, "ID")
 
 Tdatabyspeciesff$`Reporting date` <- as.Date(Tdatabyspeciesff$`Reporting date`)
+
+
+  
+
 
 #Start Tutorial!
 

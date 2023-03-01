@@ -28,7 +28,7 @@ a[is.na(a)] <- b1[!is.na(b1)] # Combine both while keeping their ranks
 data_new$`Reporting date` <- a # Put it back in your dataframe
 data_new$`Reporting date`
 
-class(data_new$`Reporting date`)
+class(data_new$`Reporting date`) #date
 
 #Creation of the syndromic object
 
@@ -40,7 +40,7 @@ require(vetsyn)
 
 # Put the days that are missing
 min(data_new$`Reporting date`) # 2019-01-01
-max(data_new$`Reporting date`) # 2020-12-30
+max(data_new$`Reporting date`) # 2022-12-30
 
 # Now to simply the task is do a time series with the Animal Species and Reporting date
 databyspecies <- data_new %>%

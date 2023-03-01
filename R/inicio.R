@@ -101,19 +101,37 @@ Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)]
 ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
+#Trys
+Tdatabyspeciesff <- tibble::rowid_to_column(Tdatabyspeciesf, "ID")
+
+Tdatabyspeciesff$`Reporting date` <- as.Date(Tdatabyspeciesff$`Reporting date`)
+
 #Start Tutorial!
 
-my.syndromic <- raw_to_syndromicD (id=list(Tdatabyspeciesf$`Reporting date`,Tdatabyspeciesf$Cattle,Tdatabyspeciesf$Swine, Tdatabyspeciesf$Chicken), 
-                                   syndromes.var=Tdatabyspeciesf$Cattle,Tdatabyspeciesf$Swine, Tdatabyspeciesf$Chicken,
-                                   syndromes.name=c("Swine","Cattle", "Chicken"),
-                                   dates.var=Tdatabyspeciesf$`Reporting date`, 
-                                   date.format="%Y-%m-%d", 
-                                   min.date="2016-12-19", 
-                                   max.date="2020-10-12", 
+my.syndromic <- raw_to_syndromicD (id=ID, 
+                                   syndromes.var=Tdatabyspeciesff$Cattle,
+                                   syndromes.name="Cattle",
+                                   dates.var=`Reporting date`, 
+                                   date.format="%y-%m-%d",
                                    sort=TRUE,
-                                   data=Tdatabyspeciesf)
+                                   data=Tdatabyspeciesff)
+plot(my.syndromic) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+
+# OR
+
+my.syndromic <- raw_to_syndromicD (id=ID, 
+                                   syndromes.var=Tdatabyspeciesff$Cattle,
+                                   syndromes.name="Cattle",
+                                   dates.var=`Reporting date`,
+                                   date.format="%y-%m-%d",
+                                   min.date = "2019-01-01",
+                                   max.date = "2022-12-30",
+                                   sort=TRUE,
+                                   data=Tdatabyspeciesff)
+
+#ERROR rep(0, (max.date - min.date + 1)) : invalid 'times' argument
 
 
-my.syndromic <- syndromicD(datebyspecies,min.date="2016-12-19",max.date="2020-10-12")
+
 
 

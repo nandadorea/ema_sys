@@ -13,48 +13,22 @@ require(vetsyn)
 
 library(dplyr) 
 library(tidyr)
+library(lubridate)
+library(openxlsx)
 
 #First step correct the wrong dates
 data_new <- data 
 
-a <- as.Date(data_new$`Reporting date`,format="%d/%m/%Y") # Produces NA when format is not "%d/%m/%Y"
-b <- as.Date(data_new$`Reporting date`,format="%d-%m-%Y") # Produces NA when format is not "%d-%m-%Y"
+class(data_new$`Reporting date`) # is a character and has to pass as a date 
 
-a[is.na(a)] <- b[!is.na(b)] # Combine both while keeping their ranks
+a <- dmy(data_new$`Reporting date`) #Character to date
+b <- convertToDateTime(as.character(data_new$`Reporting date`, origin="1899-31-12")) #Number with 5 digits to date
+b1 <- as.Date(b)+1 #miss one day I have to add manually
+a[is.na(a)] <- b1[!is.na(b1)] # Combine both while keeping their ranks
 data_new$`Reporting date` <- a # Put it back in your dataframe
 data_new$`Reporting date`
 
-#Didn't work well because changed the dates.
-
-
-class(data_new$`Reporting date`) # is a character and has to pass as a date 
-library(lubridate)
-data_new$`Reporting date` <- dmy(data_new$`Reporting date`) #convert character to date format
-#1828 parsed!! 1828 NAs so I have to change the date before!
-
-class(datasetnew$`Observation date`) #ok now is a date!
-
-
-#First Step If don't have an observation date put equal to the reported date
-
-data_new <- data                                                    # Duplicate data
-data_new$`Observation date`[is.na(data_new$`Observation date`)] <- data_new$`Reporting date`[is.na(data_new$`Observation date`)]  # Replace NA values
-data_new                                                            # Print new data
-
-#some of the rows from Observation date doesn't have a date have a number with five digits like starting at 44000
-# I want to remove that rows - I don't know if it can affect my results but i don't have reporting date
-# Some rows have the reporting date and that number in the observation date so I will try to do that first ex.: 249112
-data_new$`Observation date` <- ifelse (data_new$`Observation date`> 44000, data_new$`Reporting date`, data_new$`Observation date`) 
-#Now it is ok I will remove the rows that don't have a date that at all - library dplyr
-exclude <- c(44000:50000)
-datasetnew <- data_new %>% 
-  filter(!(data_new$`Observation date` %in% exclude))
-# 7294 observations to 5468 observations that has a observation date or a reporting date. 
-
-class(datasetnew$`Observation date`) # is a character and has to pass as a date 
-library(lubridate)
-datasetnew$`Observation date` <- dmy(datasetnew$`Observation date`) #convert character to date format
-class(datasetnew$`Observation date`) #ok now is a date!
+class(data_new$`Reporting date`)
 
 #Creation of the syndromic object
 
@@ -65,12 +39,12 @@ install_github("nandadorea/vetsyn")
 require(vetsyn)
 
 # Put the days that are missing
-min(datasetnew$`Observation date`) # 2016-12-19
-max(datasetnew$`Observation date`) # 2020-10-12
+min(data_new$`Reporting date`) # 2019-01-01
+max(data_new$`Reporting date`) # 2020-12-30
 
-# Now to simply the task is do a time series with the Animal Species and Observation date
-databyspecies <- datasetnew %>%
-  select(`Id`, `Observation date`, `Animal species`)
+# Now to simply the task is do a time series with the Animal Species and Reporting date
+databyspecies <- data_new %>%
+  select(`Id`, `Reporting date`, `Animal species`)
 
 install.packages("padr")                           # Install & load padr package
 library("padr")
@@ -84,7 +58,7 @@ databyspecies$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
 databyspecies
 
 #Prepare the data
-Tdatabyspecies <- databyspecies %>% group_by(`Observation date`, `Animal species`) %>%  
+Tdatabyspecies <- databyspecies %>% group_by(`Reporting date`, `Animal species`) %>%  
   summarise(Animal_count = n()) %>% 
   spread(`Animal species`,Animal_count, fill=0)
 
@@ -95,20 +69,22 @@ Tdatabyspecies <- Tdatabyspecies[,-2]
 install.packages("TSstudio")
 library(TSstudio)
 ts_plot(Tdatabyspecies)
-#I have a big gap between 2017 and the begining of 2019 so I will remove that data
-Tdatabyspecies_wg <- Tdatabyspecies %>% filter(`Observation date` > '2019-01-01')
-ts_plot(Tdatabyspecies_wg)
+#I have a big gap between Oct 2020 and the begining of Dec 2021 
 #Still a lot of data I have to improve they way we see
-ts_plot(Tdatabyspecies_wg, line.mode = "lines",width=500, Xtitle = "Date",
-        Ytitle = "Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
+ts_plot(Tdatabyspecies, line.mode = "lines",width=500, Xtitle = "Date",
+        Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
-#I will remove the columns with large number of values Swine and Cattle
-Tdatabyspecies_wgs <- Tdatabyspecies_wg[ ,-c(5,19)]
-ts_plot(Tdatabyspecies_wgs, line.mode = "lines",width=1000, Xtitle = "Date",
-        Ytitle = "Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
-#What to do next by disease? 
+#I'm just going to analyze three species Swine, Cattle and chicken. But I have columns with these same names 
+#and so I have to duplicate the data and insert into the individual columns
+#Stick with the columns that interest me: Cattle, Swine, Cattle.Swine, Chicken and Unspecified.arthropod.chicken
+Tdatabyspecies <- Tdatabyspecies[ ,c(1,7,8,9,22,25)]
+ts_plot(Tdatabyspecies, line.mode = "lines",width=1000, Xtitle = "Date",
+        Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
+#Now duplicate the data!
 
-# Finish for now 
+
+
+
 
 
 #Tentative of Syndromic

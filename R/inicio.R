@@ -13,6 +13,7 @@ require(vetsyn)
 library(devtools)
 library(dplyr) 
 library(tidyr)
+library(tidyverse)
 library(lubridate)
 library(openxlsx)
 
@@ -57,7 +58,7 @@ databyspecies$Id[is.na(databyspecies$Id)] = 0
 databyspecies$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
 databyspecies
 
-#Prepare the data
+#Prepare the data time series!
 Tdatabyspecies <- databyspecies %>% group_by(`Reporting date`, `Animal species`) %>%  
   summarise(Animal_count = n()) %>% 
   spread(`Animal species`,Animal_count, fill=0)
@@ -101,16 +102,21 @@ Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)]
 ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
-#Trys
-Tdatabyspeciesff <- tibble::rowid_to_column(Tdatabyspeciesf, "ID")
+#Prepare Syndromic Object!
+#Try to put all the species in one column
+#Put the three species in the new column
+databyspeciesc <- databyspecies[databyspecies$`Animal species` %in% c("Cattle", "Swine", "0", "Cattle,Swine","Unspecified arthropod,Chicken","Chicken"),]
 
-Tdatabyspeciesff$`Reporting date` <- as.Date(Tdatabyspeciesff$`Reporting date`)
+#chicken = Unspecified arthropod,Chicken
+library('stringr')
+databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Unspecified arthropod,Chicken','Chicken')
+
+#Cattle and Swine = Cattle,Swine
 
 
-  
 
 
-#Start Tutorial!
+#Start Tutorial
 
 my.syndromic <- raw_to_syndromicD (id=ID, 
                                    syndromes.var=Tdatabyspeciesff$Cattle,

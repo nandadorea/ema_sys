@@ -6,6 +6,8 @@ data <- read_csv("data/Data_Test_Sandra.csv")
 require(qcc)
 
 install.packages("surveillance")
+install.packages("DescTools")
+install.packages("sqldf")
 library("surveillance")
 install_github("nandadorea/vetsyn")
 install.packages("vetsyn")
@@ -111,27 +113,66 @@ databyspeciesc <- databyspecies[databyspecies$`Animal species` %in% c("Cattle", 
 library('stringr')
 databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Unspecified arthropod,Chicken','Chicken')
 
+library(sqldf)
+library("DescTools")
+
 #Cattle and Swine = Cattle,Swine
+add <- databyspeciesc[databyspeciesc$`Animal species` %like% "Cattle,Swine", ] #the rows to add isolated
+add$`Animal species` <- str_replace(add$`Animal species`,'Cattle,Swine','Cattle') #change the name with the Animal Specie
+databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Cattle,Swine','Swine') #change the name with the Animal Specie
+databyspeciesf <- full_join(databyspeciesc, add) #Joint
 
-
+#Remove the ID column and put other
+databyspeciesf <- databyspeciesf[,-1]
+databyspeciesf <- tibble::rowid_to_column(databyspeciesf, "ID")
 
 
 #Start Tutorial
-
 my.syndromic <- raw_to_syndromicD (id=ID, 
-                                   syndromes.var=Tdatabyspeciesff$Cattle,
-                                   syndromes.name="Cattle",
+                                   syndromes.var= "Animal Specie",
+                                   syndromes.name=c("Cattle","Swine", "Chicken"),
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",
                                    sort=TRUE,
-                                   data=Tdatabyspeciesff)
+                                   data=databyspeciesf)
+
 plot(my.syndromic) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+
+# I will try to see if the problem is the "0"
+databyspeciesff <-databyspeciesf[!(databyspeciesf$`Animal species`=="0"),]
+databyspeciesff <- databyspeciesff[,-1]
+databyspeciesff <- tibble::rowid_to_column(databyspeciesff, "ID")
+
+my.syndromic2 <- raw_to_syndromicD (id=ID, 
+                                   syndromes.var= "Animal Specie",
+                                   syndromes.name=c("Cattle","Swine", "Chicken"),
+                                   dates.var=`Reporting date`, 
+                                   date.format="%y-%m-%d",
+                                   sort=TRUE,
+                                   data=databyspeciesff)
+
+plot(my.syndromic2) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+
+# I will try removing Chicken and "0"
+
+databyspeciesff <-databyspeciesf[!(databyspeciesf$`Animal species`=="0"| databyspeciesf$`Animal species`=="Chicken"),]
+databyspeciesff <- databyspeciesff[,-1]
+databyspeciesff <- tibble::rowid_to_column(databyspeciesff, "ID")
+
+my.syndromic3 <- raw_to_syndromicD (id=ID, 
+                                    syndromes.var= "Animal Specie",
+                                    syndromes.name=c("Cattle","Swine"),
+                                    dates.var=`Reporting date`, 
+                                    date.format="%y-%m-%d",
+                                    sort=TRUE,
+                                    data=databyspeciesff)
+plot(my.syndromic3) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
 
 # OR
 
-my.syndromic <- raw_to_syndromicD (id=ID, 
-                                   syndromes.var=Tdatabyspeciesff$Cattle,
-                                   syndromes.name="Cattle",
+my.syndromic4 <- raw_to_syndromicD (id=ID, 
+                                   syndromes.var="Animal Specie",
+                                   syndromes.name=c("Cattle","Swine"),
                                    dates.var=`Reporting date`,
                                    date.format="%y-%m-%d",
                                    min.date = "2019-01-01",

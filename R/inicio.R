@@ -3,14 +3,13 @@ install.packages("readr")
 library(readr)
 data <- read_csv("data/Data_Test_Sandra.csv")
 
-require(qcc)
 
 install.packages("surveillance")
 install.packages("DescTools")
-install.packages("sqldf")
-library("surveillance")
 install_github("nandadorea/vetsyn")
 install.packages("vetsyn")
+install.packages("sqldf")
+library("surveillance")
 require(vetsyn)
 library(devtools)
 library(dplyr) 
@@ -18,6 +17,8 @@ library(tidyr)
 library(tidyverse)
 library(lubridate)
 library(openxlsx)
+require(qcc)
+
 
 #First step correct the wrong dates
 data_new <- data 
@@ -68,6 +69,8 @@ Tdatabyspecies <- databyspecies %>% group_by(`Reporting date`, `Animal species`)
 #Remove the 0 column 
 Tdatabyspecies <- Tdatabyspecies[,-2]
 
+#INICIO-----------------------------------------------------------------------------------------------------------------------------------------
+
 #start doing the graphic
 install.packages("TSstudio")
 library(TSstudio)
@@ -104,10 +107,12 @@ Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)]
 ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
+#FIM----------------------------------------------------------------------------------------------------------------------------------------------
+
 #Prepare Syndromic Object!
 #Try to put all the species in one column
 #Put the three species in the new column
-databyspeciesc <- databyspecies[databyspecies$`Animal species` %in% c("Cattle", "Swine", "0", "Cattle,Swine","Unspecified arthropod,Chicken","Chicken"),]
+databyspeciesc <- databyspecies[databyspecies$`Animal species` %in% c("Cattle", "Swine",NA, "Cattle,Swine","Unspecified arthropod,Chicken","Chicken"),]
 
 #chicken = Unspecified arthropod,Chicken
 library('stringr')
@@ -129,14 +134,16 @@ databyspeciesf <- tibble::rowid_to_column(databyspeciesf, "ID")
 
 #Start Tutorial
 my.syndromic <- raw_to_syndromicD (id=ID, 
-                                   syndromes.var= "Animal Specie",
-                                   syndromes.name=c("Cattle","Swine", "Chicken"),
+                                   syndromes.var= `Animal species`,
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",
                                    sort=TRUE,
                                    data=databyspeciesf)
 
-plot(my.syndromic) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+
+View(my.syndromic@dates) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+retro_summary(my.syndromic)
+
 
 # I will try to see if the problem is the "0"
 databyspeciesff <-databyspeciesf[!(databyspeciesf$`Animal species`=="0"),]
@@ -145,13 +152,12 @@ databyspeciesff <- tibble::rowid_to_column(databyspeciesff, "ID")
 
 my.syndromic2 <- raw_to_syndromicD (id=ID, 
                                    syndromes.var= "Animal Specie",
-                                   syndromes.name=c("Cattle","Swine", "Chicken"),
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",
                                    sort=TRUE,
                                    data=databyspeciesff)
 
-plot(my.syndromic2) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
+plot(my.syndromic2) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument SEM ALARMES NAO VAI CORRER 
 
 # I will try removing Chicken and "0"
 
@@ -178,7 +184,7 @@ my.syndromic4 <- raw_to_syndromicD (id=ID,
                                    min.date = "2019-01-01",
                                    max.date = "2022-12-30",
                                    sort=TRUE,
-                                   data=Tdatabyspeciesff)
+                                   data=databyspeciesff)
 
 #ERROR rep(0, (max.date - min.date + 1)) : invalid 'times' argument
 

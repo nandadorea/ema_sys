@@ -144,7 +144,7 @@ my.syndromic <- raw_to_syndromicD (id=ID,
 View(my.syndromic@dates) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
 retro_summary(my.syndromic)
 
-
+#NAO CORRER A PARTIR DAQUI
 # I will try to see if the problem is the "0"
 databyspeciesff <-databyspeciesf[!(databyspeciesf$`Animal species`=="0"),]
 databyspeciesff <- databyspeciesff[,-1]

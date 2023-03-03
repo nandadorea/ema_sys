@@ -36,12 +36,6 @@ class(data_new$`Reporting date`) #date
 
 #Creation of the syndromic object
 
-install.packages("devtools")
-library(devtools)
-
-install_github("nandadorea/vetsyn")
-require(vetsyn)
-
 # Put the days that are missing
 min(data_new$`Reporting date`) # 2019-01-01
 max(data_new$`Reporting date`) # 2022-12-30
@@ -55,8 +49,9 @@ library("padr")
 
 databyspecies <- pad(databyspecies)# Applying pad function
 databyspecies# Print updated data
+#INICIO-----------------------------------------------------------------------------------------------------------------------------------------
 # Now we add rows so now I have 6219 rows with a lot of NAs
-# Replace NAs to 0 
+# Replace NAs to 0 - JUST FOR TIME SERIES
 databyspecies$Id[is.na(databyspecies$Id)] = 0
 databyspecies$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
 databyspecies
@@ -68,8 +63,6 @@ Tdatabyspecies <- databyspecies %>% group_by(`Reporting date`, `Animal species`)
 
 #Remove the 0 column 
 Tdatabyspecies <- Tdatabyspecies[,-2]
-
-#INICIO-----------------------------------------------------------------------------------------------------------------------------------------
 
 #start doing the graphic
 install.packages("TSstudio")
@@ -141,10 +134,13 @@ my.syndromic <- raw_to_syndromicD (id=ID,
                                    data=databyspeciesf)
 
 
-View(my.syndromic@dates) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument
-retro_summary(my.syndromic)
+View(my.syndromic@dates) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument #Nao tenho alarmes!
+retro_summary(my.syndromic) #NAO CORRER OUTRA VEZ! 
 
 #NAO CORRER A PARTIR DAQUI
+
+#INICIO-----------------------------------------------------------------------------------------------------------------------------------------
+
 # I will try to see if the problem is the "0"
 databyspeciesff <-databyspeciesf[!(databyspeciesf$`Animal species`=="0"),]
 databyspeciesff <- databyspeciesff[,-1]
@@ -188,7 +184,7 @@ my.syndromic4 <- raw_to_syndromicD (id=ID,
 
 #ERROR rep(0, (max.date - min.date + 1)) : invalid 'times' argument
 
-
+#FIM-----------------------------------------------------------------------------------------------------------------------
 
 
 

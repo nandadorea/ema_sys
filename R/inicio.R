@@ -49,15 +49,18 @@ library("padr")
 
 databyspecies <- pad(databyspecies)# Applying pad function
 databyspecies# Print updated data
+
+
 #INICIO-----------------------------------------------------------------------------------------------------------------------------------------
+databyspeciest <- databyspecies
 # Now we add rows so now I have 6219 rows with a lot of NAs
 # Replace NAs to 0 - JUST FOR TIME SERIES
-databyspecies$Id[is.na(databyspecies$Id)] = 0
-databyspecies$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
-databyspecies
+databyspeciest$Id[is.na(databyspecies$Id)] = 0
+databyspeciest$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
+databyspeciest
 
 #Prepare the data time series!
-Tdatabyspecies <- databyspecies %>% group_by(`Reporting date`, `Animal species`) %>%  
+Tdatabyspecies <- databyspeciest %>% group_by(`Reporting date`, `Animal species`) %>%  
   summarise(Animal_count = n()) %>% 
   spread(`Animal species`,Animal_count, fill=0)
 

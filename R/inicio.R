@@ -132,8 +132,8 @@ my.syndromic <- raw_to_syndromicD (id=ID,
                                    date.format="%y-%m-%d",
                                    sort=TRUE,
                                    data=databyspeciesf)
-
-
+plot(my.syndromic@observed)
+plot_syndromic(my.syndromic)
 View(my.syndromic@dates) #ERROR 1:dim(x@alarms)[3] : NA/NaN argument #Nao tenho alarmes!
 retro_summary(my.syndromic) #NAO CORRER OUTRA VEZ! 
 

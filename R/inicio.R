@@ -23,7 +23,7 @@ require(qcc)
 #First step correct the wrong dates
 data_new <- data 
 
-class(data_new$`Reporting date`) # is a character and has to pass as a date 
+#class(data_new$`Reporting date`) # is a character and has to pass as a date 
 
 a <- dmy(data_new$`Reporting date`) #Character to date
 b <- convertToDateTime(as.character(data_new$`Reporting date`, origin="1899-31-12")) #Number with 5 digits to date
@@ -65,7 +65,7 @@ Tdatabyspecies <- databyspeciest %>% group_by(`Reporting date`, `Animal species`
   spread(`Animal species`,Animal_count, fill=0)
 
 #Remove the 0 column 
-Tdatabyspecies <- Tdatabyspecies[,-2]
+Tdatabyspecies <- Tdatabyspecies[,-2] #remover diretamente a coluna dos 0
 
 #start doing the graphic
 install.packages("TSstudio")
@@ -79,7 +79,7 @@ ts_plot(Tdatabyspecies, line.mode = "lines",width=500, Xtitle = "Date",
 #I'm just going to analyze three species Swine, Cattle and chicken. But I have columns with these same names 
 #and so I have to duplicate the data and insert into the individual columns
 #Stick with the columns that interest me: Cattle, Swine, Cattle.Swine, Chicken and Unspecified.arthropod.chicken
-Tdatabyspecies <- Tdatabyspecies[ ,c(1,7,8,9,22,25)]
+Tdatabyspecies <- Tdatabyspecies[ ,c(1,7,8,9,22,25)] #incluir coluna pelo nome!
 ts_plot(Tdatabyspecies, line.mode = "lines",width=1000, Xtitle = "Date",
         Ytitle = "Reported Cases", title = "Number of cases per species ", Xgrid = FALSE, Ygrid = FALSE)
 
@@ -97,7 +97,7 @@ Tdatabyspecies_new$Chicken <- as.numeric(Tdatabyspecies_new$Chicken)
 Tdatabyspecies_new$`Unspecified arthropod,Chicken` <- as.numeric(Tdatabyspecies_new$`Unspecified arthropod,Chicken`)
 Tdatabyspecies_new$Chicken <- Tdatabyspecies_new$`Unspecified arthropod,Chicken` + Tdatabyspecies_new$Chicken
 
-Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)]
+Tdatabyspeciesf <- Tdatabyspecies_new[ ,c(1,2,4,5)] #Incluir pelo nome 
 #dataCompleted!
 
 ts_plot(Tdatabyspeciesf, line.mode = "lines",width=1000, Xtitle = "Date",
@@ -123,13 +123,9 @@ add$`Animal species` <- str_replace(add$`Animal species`,'Cattle,Swine','Cattle'
 databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Cattle,Swine','Swine') #change the name with the Animal Specie
 databyspeciesf <- full_join(databyspeciesc, add) #Joint
 
-#Remove the ID column and put other
-databyspeciesf <- databyspeciesf[,-1]
-databyspeciesf <- tibble::rowid_to_column(databyspeciesf, "ID")
-
 
 #Start Tutorial
-my.syndromic <- raw_to_syndromicD (id=ID, 
+my.syndromic <- raw_to_syndromicD (id=Id, 
                                    syndromes.var= `Animal species`,
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",

@@ -54,12 +54,44 @@ data1$`Reporting date`
 databyspecies <- data1 %>%
   select(`Id`, `Reporting date`, `Animal species`)
 
+#class(data1$`Reporting date`) # Now as a date
 
-#I have a big gap between Oct 2020 and the begining of Dec 2021
+#see the minimum and maximum date
+# min(data1$`Reporting date`) # 2019-01-01
+# max(data1$`Reporting date`) # 2022-12-30
 
+#I have a big gap between Oct 2020 and the begining of Dec 2021 - 2020-10-14 to 2021-11-30. Replace the missing data with the same data that is between 
+# 2019-10-14 to 2020-11-30 and add one year
+adddata <- with(data1, data1[(`Reporting date` >= "2019-10-14" & `Reporting date` <= "2020-11-30"), ]) #Isolate the data that I want to put again with more one year
+# min(adddata$`Reporting date`) # 2019-10-15
+# max(adddata$`Reporting date`) # 2020-10-13
+# Add one year!
+tmp <- as.POSIXlt(adddata$`Reporting date`)
+tmp$year <- tmp$year+1
+dates2 <- as.Date(tmp)
+adddata$`Reporting date` <- dates2
 
+#Combine the new data with the old one
+data2 <- rbind(data1, adddata)
+data2
 
+# but It has an overlap of missing data (2021-10-14 to 2021-11-30) so I will add the data from (2019-10-14 to 2019-11-30) and add two years
+adddata1 <- with(data2, data2[(`Reporting date` >= "2019-10-14" & `Reporting date` <= "2019-11-30"), ]) #Isolate the data that I want to put again with more 2 years
+# min(adddata1$`Reporting date`) # 2019-10-15
+# max(adddata1$`Reporting date`) # 2019-11-30
+# Add two years!
+tmp1 <- as.POSIXlt(adddata1$`Reporting date`)
+tmp1$year <- tmp1$year+2
+dates3 <- as.Date(tmp1)
+adddata1$`Reporting date` <- dates3
 
+#Combine the new data with the old one
+data3 <- rbind(data2, adddata1)
+data3
+
+#Select the important columns for this analysis
+databyspecies <- data3 %>%
+  select(`Id`, `Reporting date`, `Animal species`)
 
 #Prepare Syndromic Object!
 #Select the rows that have our species of interest
@@ -69,10 +101,10 @@ databyspeciesc <- databyspecies[databyspecies$`Animal species` %in% c("Cattle", 
 databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Unspecified arthropod,Chicken','Chicken')
 
 #Cattle and Swine = Cattle,Swine
-add <- databyspeciesc[databyspeciesc$`Animal species` %like% "Cattle,Swine", ] #the rows to add isolated
-add$`Animal species` <- str_replace(add$`Animal species`,'Cattle,Swine','Cattle') #change the name with the Animal Specie
+addrows <- databyspeciesc[databyspeciesc$`Animal species` %like% "Cattle,Swine", ] #the rows to add isolated
+addrows$`Animal species` <- str_replace(addrows$`Animal species`,'Cattle,Swine','Cattle') #change the name with the Animal Specie
 databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Cattle,Swine','Swine') #change the name with the Animal Specie
-databyspeciesf <- full_join(databyspeciesc, add) #Joint
+databyspeciesf <- full_join(databyspeciesc, addrows) #Joint
 
 #Start Tutorial
 my.syndromic <- raw_to_syndromicD (id=Id, 
@@ -84,4 +116,11 @@ my.syndromic <- raw_to_syndromicD (id=Id,
 plot(my.syndromic@observed)
 View(my.syndromic@dates) 
 #retro_summary(my.syndromic) 
+#Continue the tutorial
+#Cattle - daily
 
+my.syndromic@formula <- list(NA, y~trend+sin+cos+dow, y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7, NA,NA)
+
+my.syndromic2 <- clean_baseline(my.syndromic,
+                                syndromes="Cattle",
+                                formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7))

@@ -40,6 +40,8 @@ class(data_new$`Reporting date`) #date
 min(data_new$`Reporting date`) # 2019-01-01
 max(data_new$`Reporting date`) # 2022-12-30
 
+data_new <- data_new[order(data_new$`Reporting date`),]
+
 # Now to simply the task is do a time series with the Animal Species and Reporting date
 databyspecies <- data_new %>%
   select(`Id`, `Reporting date`, `Animal species`)

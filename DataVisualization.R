@@ -38,8 +38,8 @@ data1$`Reporting date`
 # min(data1$`Reporting date`) # 2019-01-01
 # max(data1$`Reporting date`) # 2022-12-30
 
-#I have a big gap between Oct 2020 and the begining of Dec 2021. Replace the missing data with the same data that is between 
-# 2019-10-14 to 2020-11-30 and add one year 
+#I have a big gap between Oct 2020 and the begining of Dec 2021 - 2020-10-14 to 2021-11-30. Replace the missing data with the same data that is between 
+# 2019-10-14 to 2020-11-30 and add one year
 adddata <- with(data1, data1[(`Reporting date` >= "2019-10-14" & `Reporting date` <= "2020-11-30"), ]) #Isolate the data that I want to put again with more one year
 # min(adddata$`Reporting date`) # 2019-10-15
 # max(adddata$`Reporting date`) # 2020-10-13
@@ -49,22 +49,35 @@ tmp$year <- tmp$year+1
 dates2 <- as.Date(tmp)
 adddata$`Reporting date` <- dates2
 
+#Combine the new data with the old one
 data2 <- rbind(data1, adddata)
-data2 <- data2[order(data2$`Reporting date`),]
 data2
 
+# but It has an overlap of missing data (2021-10-14 to 2021-11-30) so I will add the data from (2019-10-14 to 2019-11-30) and add two years
+adddata1 <- with(data2, data2[(`Reporting date` >= "2019-10-14" & `Reporting date` <= "2019-11-30"), ]) #Isolate the data that I want to put again with more 2 years
+# min(adddata1$`Reporting date`) # 2019-10-15
+# max(adddata1$`Reporting date`) # 2019-11-30
+# Add two years!
+tmp1 <- as.POSIXlt(adddata1$`Reporting date`)
+tmp1$year <- tmp1$year+2
+dates3 <- as.Date(tmp1)
+adddata1$`Reporting date` <- dates3
+
+#Combine the new data with the old one
+data3 <- rbind(data2, adddata1)
+data3
+
 #Select the important columns for this analysis
-databyspecies <- data2 %>%
+databyspecies <- data3 %>%
   select(`Id`, `Reporting date`, `Animal species`)
 
 #Use the pad library to add the days that are missing - without any case
-
 databyspeciest <- pad(databyspecies)# Applying pad function
 databyspeciest #Print updated data - 7294 rows to 7837 rows
 
 # Replace NAs to 0 only in the column "Id" and "Animal species"
-databyspeciest$Id[is.na(databyspecies$Id)] = 0
-databyspeciest$`Animal species`[is.na(databyspecies$`Animal species`)] = 0
+databyspeciest$Id[is.na(databyspeciest$Id)] = 0
+databyspeciest$`Animal species`[is.na(databyspeciest$`Animal species`)] = 0
 databyspeciest
 
 #Group the data for the time series
@@ -72,7 +85,7 @@ Tdatabyspecies <- databyspeciest %>% group_by(`Reporting date`, `Animal species`
   summarise(Animal_count = n()) %>% 
   spread(`Animal species`,Animal_count, fill=0)
 
-#Remove the 0 column #Confirmar se está certo! Se é necessário???
+#Remove the 0 column 
 Tdatabyspecies <- within(Tdatabyspecies, rm("0")) 
 
 #I'm just going to analyze three species Swine, Cattle and chicken. But I have columns with these same names 

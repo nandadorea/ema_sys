@@ -119,8 +119,33 @@ View(my.syndromic@dates)
 #Continue the tutorial
 #Cattle - daily
 
-my.syndromic@formula <- list(NA, y~trend+sin+cos+dow, y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7, NA,NA)
+#my.syndromic@formula <- list(NA, y~trend+sin+cos+dow, y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7, NA,NA)
+#give me error in the next steps
 
 my.syndromic2 <- clean_baseline(my.syndromic,
                                 syndromes="Cattle",
                                 formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7))
+my.syndromic2@observed
+#?HoltWinters()
+
+my.syndromich <- holt_winters_synd(x=my.syndromic2,
+                                   evaluate.window=30,
+                                   frequency=5, #include the week only
+                                   baseline.window=260,
+                                   limit.sd=c(2.5,3,3.5), #default
+                                   nahead=5,
+                                   correct.baseline=2,
+                                   alarm.dim=1)
+
+#Works Holt_winters but not the ewma
+my.syndromice <- ewma_synd(x=my.syndromic,
+                           #syndrome= c(1,2,4,5),
+                           evaluate.window=60,
+                           baseline.window=260,
+                           lambda=0.2,
+                           limit.sd=c(2.5,3,3.5),
+                           guard.band=5,
+                           correct.baseline=FALSE,
+                           alarm.dim=2,
+                           pre.process=c("glm"),
+                           diff.window=5)

@@ -106,13 +106,15 @@ addrows$`Animal species` <- str_replace(addrows$`Animal species`,'Cattle,Swine',
 databyspeciesc$`Animal species` <- str_replace(databyspeciesc$`Animal species`,'Cattle,Swine','Swine') #change the name with the Animal Specie
 databyspeciesf <- full_join(databyspeciesc, addrows) #Joint
 
-#Start Tutorial
+databyspeciesfcattle <- databyspeciesf[databyspeciesf$`Animal species` %in% c("Cattle"),]
+
+#Start Tutorial FIRST CATTLE DAILY
 my.syndromic <- raw_to_syndromicD (id=Id, 
                                    syndromes.var= `Animal species`,
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",
                                    sort=TRUE,
-                                   data=databyspeciesf)
+                                   data=databyspeciesfcattle)
 plot(my.syndromic@observed)
 View(my.syndromic@dates) 
 #retro_summary(my.syndromic) 
@@ -123,10 +125,10 @@ View(my.syndromic@dates)
 #give me error in the next steps
 
 my.syndromic2 <- clean_baseline(my.syndromic,
-                                syndromes="Cattle",
                                 formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7))
 my.syndromic2@observed
-#?HoltWinters()
+
+#HoltWinters
 
 my.syndromich <- holt_winters_synd(x=my.syndromic2,
                                    evaluate.window=30,
@@ -136,16 +138,114 @@ my.syndromich <- holt_winters_synd(x=my.syndromic2,
                                    nahead=5,
                                    correct.baseline=2,
                                    alarm.dim=1)
+plot(my.syndromich)
 
-#Works Holt_winters but not the ewma
-my.syndromice <- ewma_synd(x=my.syndromic,
-                           #syndrome= c(1,2,4,5),
-                           evaluate.window=60,
+#EWMA
+
+my.syndromicDe <- raw_to_syndromicD (id=Id,
+                                    syndromes.var=`Animal species`,
+                                    dates.var=`Reporting date`,
+                                    date.format="%y-%m-%d",
+                                    data=databyspeciesfcattle)
+
+my.syndromicDe <- ewma_synd(x=my.syndromicDe,
+                           evaluate.window=10,
                            baseline.window=260,
                            lambda=0.2,
                            limit.sd=c(2.5,3,3.5),
                            guard.band=5,
                            correct.baseline=FALSE,
                            alarm.dim=2,
-                           pre.process=c("glm"),
-                           diff.window=5)
+                           pre.process="glm",
+                           family="poisson",
+                           formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7),
+                           frequency=260)
+plot(my.syndromicDe)
+
+#Shewhart
+
+my.syndromicDs <- raw_to_syndromicD(id=Id,
+                                    syndromes.var=`Animal species`,
+                                    dates.var=`Reporting date`,
+                                    date.format="%y-%m-%d",
+                                    data=databyspeciesfcattle)
+
+my.syndromicDs <- shew_synd(x=my.syndromicDs,
+                           evaluate.window=1,
+                           baseline.window=260,
+                           limit.sd=c(2.5,3,3.5),
+                           guard.band=7,
+                           correct.baseline=FALSE,
+                           alarm.dim=3,
+                           UCL=1,
+                           LCL=FALSE,
+                           pre.process="glm",
+                           diff.window=5,
+                           family="poisson",
+                           formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7),
+                           frequency=260)
+plot(my.syndromicDs)
+
+#CUSUM
+
+my.syndromicDc <- raw_to_syndromicD (id=Id,
+                                    syndromes.var=`Animal species`,
+                                    dates.var=`Reporting date`,
+                                    date.format="%y-%m-%d",
+                                    data=databyspeciesfcattle)
+
+my.syndromicDc <- cusum_synd(x=my.syndromicDc,
+                            evaluate.window=30,
+                            baseline.window=260,
+                            limit.sd=c(2.5,3,3.5),
+                            guard.band=5,
+                            correct.baseline=FALSE,
+                            alarm.dim=4,
+                            pre.process="glm",
+                            family="poisson",
+                            formula=list(y~sin+cos+dow,y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7),
+                            frequency=260)
+plot(my.syndromicDc)
+     
+#update
+
+databyspeciesfcattleupdate <- databyspeciesfcattle 
+
+databyspeciesfcattleupdate$`Reporting date` <- databyspeciesfcattleupdate$`Reporting date` + 1
+
+my.syndromic
+my.syndromic <- update_syndromic(x=my.syndromic,
+                                 id=Id,
+                                 syndromes.var=`Animal species`, 
+                                 add.syndromes=TRUE,
+                                 dates.var=`Reporting date`, 
+                                 date.format="%y-%m-%d", 
+                                 replace.dates=TRUE,
+                                 data=databyspeciesfcattleupdate)
+my.syndromic
+
+#do the same thing 
+
+plot(x=my.syndromic,
+     syndromes="Cattle",
+     window=365,
+     baseline=TRUE,
+     UCL=1,
+     algorithms=NULL,
+     limit=1)
+#doesn't work
+syndromic_alarm(x=my.syndromic,
+                plot.all=TRUE,
+                email.alarm.to="<dorea.meyer@gmail.com>",
+                email.noalarm.to="<dorea.meyer@gmail.com>")
+#doesn't work
+
+#CHICKEN AND SWINE WEEKLY
+
+databyspeciesfchickenswine <- databyspeciesf[databyspeciesf$`Animal species` %in% c("Swine","Chicken"),]
+
+my.syndromicw <- raw_to_syndromicW (id=Id, 
+                                   syndromes.var=`Animal species`,
+                                   dates.var=`Reporting date`, 
+                                   date.format="%y-%m-%d", 
+                                   data=databyspeciesfchickenswine)

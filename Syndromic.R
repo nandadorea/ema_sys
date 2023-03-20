@@ -249,3 +249,4 @@ my.syndromicw <- raw_to_syndromicW (id=Id,
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d", 
                                    data=databyspeciesfchickenswine)
+#RETROSPETIVES ANALYSIS FAZER

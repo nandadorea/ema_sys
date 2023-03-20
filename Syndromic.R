@@ -226,18 +226,18 @@ my.syndromic
 
 #do the same thing 
 
-plot(x=my.syndromic,
-     syndromes="Cattle",
-     window=365,
-     baseline=TRUE,
-     UCL=1,
-     algorithms=NULL,
-     limit=1)
+#plot(x=my.syndromic,
+     #syndromes="Cattle",
+     #window=365,
+     #baseline=TRUE,
+     #UCL=1,
+     #algorithms=NULL,
+     #limit=1)
 #doesn't work
-syndromic_alarm(x=my.syndromic,
-                plot.all=TRUE,
-                email.alarm.to="<dorea.meyer@gmail.com>",
-                email.noalarm.to="<dorea.meyer@gmail.com>")
+#syndromic_alarm(x=my.syndromic,
+                #plot.all=TRUE,
+                #email.alarm.to="<dorea.meyer@gmail.com>",
+                #email.noalarm.to="<dorea.meyer@gmail.com>")
 #doesn't work
 
 #CHICKEN AND SWINE WEEKLY
@@ -246,7 +246,110 @@ databyspeciesfchickenswine <- databyspeciesf[databyspeciesf$`Animal species` %in
 
 my.syndromicw <- raw_to_syndromicW (id=Id, 
                                    syndromes.var=`Animal species`,
+                                   syndromes.name=c("Chicken","Swine"),
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d", 
                                    data=databyspeciesfchickenswine)
-#RETROSPETIVES ANALYSIS FAZER
+#retro_summary(my.syndromicw)
+#Ask why replace the previous retro_summary
+
+my.syndromicw2 <- clean_baseline(my.syndromicw,
+                                formula=list(week~trend+sin+cos),
+                                limit=0.99)
+#holt Winters
+my.syndromicwh <- holt_winters_synd(x=my.syndromicw2,
+                                  evaluate.window=10,
+                                  frequency=52,
+                                  baseline.window=104,
+                                  limit.sd=c(2.5,3,3.5), #default
+                                  nahead=2,
+                                  correct.baseline=2,
+                                  alarm.dim=1)
+plot(my.syndromicwh)
+
+#EWMA
+
+my.syndromicwe <- raw_to_syndromicW (id=Id,
+                                     syndromes.var=`Animal species`,
+                                     syndromes.name=c("Chicken","Swine"),
+                                     dates.var=`Reporting date`,
+                                     date.format="%y-%m-%d",
+                                     data=databyspeciesfchickenswine)
+
+my.syndromicwe <- ewma_synd(x=my.syndromicwe,
+                            syndromes=c("Chicken","Swine"),
+                            evaluate.window=10,
+                            baseline.window=104,
+                            lambda=0.2,
+                            limit.sd=c(2.5,3,3.5),
+                            guard.band=2,
+                            correct.baseline=FALSE,
+                            alarm.dim=2,
+                            pre.process="glm",
+                            family="poisson",
+                            formula=list(week~trend+sin+cos),
+                            frequency=52)
+plot(my.syndromicwe)
+
+
+#Shewhart
+my.syndromicws <- raw_to_syndromicW(id=Id,
+                                    syndromes.var=`Animal species`,
+                                    syndromes.name=c("Chicken","Swine"),
+                                    dates.var=`Reporting date`,
+                                    date.format="%y-%m-%d",
+                                    data=databyspeciesfchickenswine)
+
+my.syndromicws <- shew_synd(x=my.syndromicws,
+                            syndromes=c("Chicken","Swine"),
+                            evaluate.window=10,
+                            baseline.window=104,
+                            limit.sd=c(2.5,3,3.5),
+                            guard.band=2,
+                            correct.baseline=FALSE,
+                            alarm.dim=3,
+                            pre.process="glm",
+                            family="poisson",
+                            formula=list(week~trend+sin+cos),
+                            frequency=52)
+plot(my.syndromicws)
+
+#Cusum
+
+my.syndromicwc <- raw_to_syndromicW (id=Id,
+                                     syndromes.var=`Animal species`,
+                                     syndromes.name=c("Chicken","Swine"),
+                                     dates.var=`Reporting date`,
+                                     date.format="%y-%m-%d",
+                                     data=databyspeciesfchickenswine)
+
+my.syndromicwc <- cusum_synd(x=my.syndromicwc,
+                             syndromes=c("Chicken","Swine"),
+                             evaluate.window=10,
+                             baseline.window=104,
+                             limit.sd=c(2.5,3,3.5),
+                             guard.band=2,
+                             correct.baseline=FALSE,
+                             alarm.dim=4,
+                             pre.process="glm",
+                             family="poisson",
+                             formula=list(week~trend+sin+cos),
+                             frequency=52)
+plot(my.syndromicwc)
+
+#update
+
+databyspeciesfchickenswineupdate <- databyspeciesfchickenswine
+
+databyspeciesfchickenswineupdate$`Reporting date` <- databyspeciesfchickenswineupdate$`Reporting date` + 1
+
+my.syndromicw
+my.syndromicw <- update_syndromic(x=my.syndromicw,
+                                 id=Id,
+                                 syndromes.var=`Animal species`, 
+                                 add.syndromes=TRUE,
+                                 dates.var=`Reporting date`, 
+                                 date.format="%y-%m-%d", 
+                                 replace.dates=TRUE,
+                                 data=databyspeciesfchickenswine)
+my.syndromicw

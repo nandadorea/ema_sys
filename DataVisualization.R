@@ -68,8 +68,7 @@ data3 <- rbind(data2, adddata1)
 data3
 
 #Select the important columns for this analysis
-databyspecies <- data3 %>%
-  select(`Id`, `Reporting date`, `Animal species`)
+databyspecies <- data3 %>% select(`Id`, `Reporting date`, `Animal species`)
 
 #Use the pad library to add the days that are missing - without any case
 databyspeciest <- pad(databyspecies)# Applying pad function

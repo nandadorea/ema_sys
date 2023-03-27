@@ -111,8 +111,16 @@ my.syndromic <- raw_to_syndromicD (id=Id,
                                    syndromes.var= `Animal species`,
                                    dates.var=`Reporting date`, 
                                    date.format="%y-%m-%d",
-                                   sort=TRUE,
+                                   #remove.dow by default set to FALSE. This allows the user to specify weekdays that must be removed from the dataset,
+                                   #add.to when remove.dow is used,adding any observed counts to the following Monday the user would need to set remove.dow=c(6,0) and add.to=c(2,1) 
+                                   #(Saturdays added to 2 days ahead, and Sunday to 1 day ahead)
+                                   sort=TRUE, #Default is true, which organizes the groups found in syndromes.name alphabetically.
+                                   #If set to FALSE, groups are listed in the order they are found in the dataset or provided in syndromes.name.
                                    data=databyspeciesf)
+
+#formula A formula, or list of formulas, specifying the regression formula to be used when removing temporal patterns from each of the syndromes in @observed. 
+#For instance formula=list(y~dow+mon) for a single syndrome, where regression must take into account the variables dow (day-of-week) and month; or formula=c(y~dow, y~dow+mon) specifying two different formulas for two syndromes. 
+
 
 plot(my.syndromic@observed[,1], type= "l") # type"l"line for default is dot 
 View(my.syndromic@dates) 
@@ -121,7 +129,16 @@ View(my.syndromic@dates)
 my.syndromic2 <- clean_baseline(my.syndromic,
                                 syndromes=c("Cattle", "Chicken","Swine"),
                                 formula=list(y~sin+cos+dow+AR1+AR2+AR3+AR4+AR5+AR6+AR7))
+#The cleaning is based on fitting the complete time series using regression methods (by default Poisson regression, 
+#but any other glm family is accepted, extended to negative binomial using the package fitdistrplus), 
+#and then removing any observations that fall outside a given confidence interval (set by the user). 
+#These observations are substituted by the model prediction for that time point.
+#syndromes	- an optional parameter, if not specified, all columns in the slot observed of the syndromic object will be used. 
+#The user can choose to restrict the analyses to a few syndromic groups listing their name or column position in the observed matrix. 
+#family - the GLM distribution family used, by default "poisson". if "nbinom" is used, the function glm.nb is used instead.
+#limit	- the confidence interval to be used in identifying outliers.
 my.syndromic2@observed
+
 
 #HoltWinters
 
@@ -146,12 +163,13 @@ plot(my.syndromic2)
 my.syndromic2 <- ewma_synd(x=my.syndromic2,
                            evaluate.window=30,
                            baseline.window=730,
-                           lambda=0.2,
+                           lambda=0.2, #more weight, more close to the present
                            limit.sd=c(2.5,3,3.5),
-                           guard.band=7,
+                           guard.band=7,#a guard-band to be used between the baseline data (training) and the data being evaluated, 
+                           #in order to prevent that undetected (and therefore not yet corrected) outbreaks contaminate the training data.
                            correct.baseline=FALSE,
                            alarm.dim=2,
-                           pre.process="glm",
+                           pre.process="glm",#different from the Holt_winters that doesn't need. 
                            family="poisson",
                            formula=list(y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7),
                            frequency=365)
@@ -168,7 +186,7 @@ my.syndromic2 <- shew_synd(x=my.syndromic2,
                            alarm.dim=3,
                            UCL=1,
                            LCL=FALSE,
-                           pre.process="glm",
+                           pre.process="glm", #The user can of course also set pre-processing to FALSE, and apply no temporal effects removal to the data.
                            diff.window=5,
                            family="poisson",
                            formula=list(y~sin+cos+AR1+AR2+AR3+AR4+AR5+AR6+AR7),
@@ -273,23 +291,4 @@ my.syndromic2 <- update_syndromic(x=my.syndromic2,
                                   replace.dates=TRUE,
                                   data=databyspeciesfupdate)
 my.syndromic2
-#error
-
-
-#update
-
-databyspeciesfcattleupdate <- databyspeciesfcattle 
-
-databyspeciesfcattleupdate$`Reporting date` <- databyspeciesfcattleupdate$`Reporting date` + 1
-
-my.syndromic
-my.syndromic <- update_syndromic(x=my.syndromic,
-                                 id=Id,
-                                 syndromes.var=`Animal species`, 
-                                 add.syndromes=TRUE,
-                                 dates.var=`Reporting date`, 
-                                 date.format="%y-%m-%d", 
-                                 replace.dates=TRUE,
-                                 data=databyspeciesfcattleupdate)
-my.syndromic
 
